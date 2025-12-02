@@ -1,0 +1,399 @@
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Camera, CreditCard, Plus, Trash2, MapPin, Coffee, Train, Calendar, ChevronRight, Home, Snowflake, Utensils } from 'lucide-react';
+
+// --- 模擬資料與攻略內容 (來自 PDF) ---
+const GUIDE_DATA = {
+  transport: {
+    title: "交通速查",
+    items: [
+      { label: "東京 → 長野", desc: "北陸新幹線 (約1.5小時)", price: 8500 },
+      { label: "長野站 → 戶隱中社", desc: "長電巴士 70/73系 (7號月台)", price: 1400 },
+    ],
+    busSchedule: {
+      outbound: ["07:00", "08:00", "09:00", "10:00"],
+      inbound: ["13:00", "14:00", "15:00", "16:00"]
+    }
+  },
+  itinerary: [
+    {
+      day: "Day 1",
+      title: "戶隱神社與神木",
+      spots: ["長野站出發", "戶隱中社", "古杉參道 (雪景)", "午餐：戶隱手打蕎麥麵 (Gokui)"],
+      note: "注意：冬季若暴雪，道路可能臨時封閉。"
+    },
+    {
+      day: "Day 2",
+      title: "善光寺與老街美食",
+      spots: ["善光寺 (清晨參拜)", "BENI-BENI 蘋果派", "味噌屋拉麵 (車站旁)"],
+      note: "必點：熱蘋果派，酸甜爆汁，長野限定！"
+    },
+    {
+      day: "Day 3",
+      title: "雪猴與溫泉 (進階)",
+      spots: ["地獄谷野猿公苑", "小布施町 (栗子甜點)", "湯田中溫泉鄉"],
+      note: "適合二刷或是時間充裕的旅人。"
+    }
+  ],
+  accommodation: ["Dormy Inn 長野溫泉飯店 (含宵夜)", "長野大都會飯店 (直通車站)"]
+};
+
+// --- 元件：卡片容器 ---
+const Card = ({ children, className = "" }) => (
+  <div className={`bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden ${className}`}>
+    {children}
+  </div>
+);
+
+// --- 頁面：攻略 (Guide) ---
+const GuideView = () => (
+  <div className="space-y-6 pb-20">
+    {/* 歡迎橫幅 */}
+    <div className="relative h-40 bg-gradient-to-r from-slate-800 to-slate-600 rounded-2xl overflow-hidden flex items-center justify-center text-white shadow-md mx-4 mt-4">
+      <div className="absolute inset-0 opacity-20 bg-[url('[https://www.transparenttextures.com/patterns/snow.png](https://www.transparenttextures.com/patterns/snow.png)')]"></div>
+      <div className="text-center z-10">
+        <h2 className="text-2xl font-bold tracking-widest mb-1">長野 NAGANO</h2>
+        <p className="text-sm opacity-90">雪、神社與蘋果派的香氣</p>
+      </div>
+    </div>
+
+    {/* 交通資訊 */}
+    <div className="px-4">
+      <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+        <Train className="w-5 h-5 text-red-500" /> 交通速查
+      </h3>
+      <Card>
+        <div className="p-4 space-y-4">
+          {GUIDE_DATA.transport.items.map((item, idx) => (
+            <div key={idx} className="flex justify-between items-start border-b border-slate-100 last:border-0 pb-3 last:pb-0">
+              <div>
+                <div className="font-semibold text-slate-700">{item.label}</div>
+                <div className="text-xs text-slate-500">{item.desc}</div>
+              </div>
+              <div className="text-sm font-bold text-slate-600">¥{item.price.toLocaleString()}</div>
+            </div>
+          ))}
+          
+          <div className="bg-slate-50 p-3 rounded-lg">
+            <div className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">戶隱巴士時刻表 (冬季參考)</div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="block text-red-500 font-bold text-xs mb-1">去程 (長野站發)</span>
+                <div className="font-mono text-slate-700">{GUIDE_DATA.transport.busSchedule.outbound.join(" / ")}</div>
+              </div>
+              <div>
+                <span className="block text-blue-500 font-bold text-xs mb-1">回程 (中社發)</span>
+                <div className="font-mono text-slate-700">{GUIDE_DATA.transport.busSchedule.inbound.join(" / ")}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+
+    {/* 行程建議 */}
+    <div className="px-4">
+      <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+        <MapPin className="w-5 h-5 text-red-500" /> 精華行程
+      </h3>
+      <div className="space-y-4">
+        {GUIDE_DATA.itinerary.map((day, idx) => (
+          <Card key={idx}>
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-bold">{day.day}</span>
+                <h4 className="font-bold text-slate-800">{day.title}</h4>
+              </div>
+              <ul className="space-y-2 mb-3">
+                {day.spots.map((spot, sIdx) => (
+                  <li key={sIdx} className="flex items-start gap-2 text-sm text-slate-600">
+                    <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></div>
+                    {spot}
+                  </li>
+                ))}
+              </ul>
+              {day.note && (
+                <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-100">
+                  💡 {day.note}
+                </div>
+              )}
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+    
+    <div className="h-4"></div>
+  </div>
+);
+
+// --- 頁面：記帳 (Expenses) ---
+const ExpensesView = ({ expenses, setExpenses }) => {
+  const [newItem, setNewItem] = useState("");
+  const [newCost, setNewCost] = useState("");
+  const [category, setCategory] = useState("食");
+
+  const categories = {
+    "食": { icon: <Utensils className="w-4 h-4" />, color: "bg-orange-100 text-orange-600" },
+    "行": { icon: <Train className="w-4 h-4" />, color: "bg-blue-100 text-blue-600" },
+    "住": { icon: <Home className="w-4 h-4" />, color: "bg-purple-100 text-purple-600" },
+    "買": { icon: <CreditCard className="w-4 h-4" />, color: "bg-green-100 text-green-600" },
+  };
+
+  const handleAdd = () => {
+    if (!newItem || !newCost) return;
+    const expense = {
+      id: Date.now(),
+      item: newItem,
+      cost: parseInt(newCost),
+      category,
+      date: new Date().toLocaleDateString()
+    };
+    setExpenses([expense, ...expenses]);
+    setNewItem("");
+    setNewCost("");
+  };
+
+  const handleDelete = (id) => {
+    setExpenses(expenses.filter(e => e.id !== id));
+  };
+
+  const totalCost = expenses.reduce((acc, curr) => acc + curr.cost, 0);
+
+  return (
+    <div className="space-y-6 px-4 pt-4 pb-24">
+      {/* 總金額卡片 */}
+      <div className="bg-slate-800 text-white rounded-2xl p-6 shadow-lg">
+        <div className="text-slate-400 text-sm mb-1">旅費總計 (JPY)</div>
+        <div className="text-4xl font-bold font-mono">¥{totalCost.toLocaleString()}</div>
+        <div className="mt-2 text-xs text-slate-400 flex items-center gap-1">
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          約 {(totalCost * 0.21).toLocaleString()} TWD (匯率參考)
+        </div>
+      </div>
+
+      {/* 新增消費 */}
+      <Card>
+        <div className="p-4">
+          <div className="text-sm font-bold text-slate-700 mb-3">新增一筆</div>
+          <div className="flex gap-2 mb-3">
+            {Object.keys(categories).map(cat => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  category === cat ? 'bg-slate-800 text-white shadow' : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              placeholder="項目 (如: 蘋果派)"
+              value={newItem}
+              onChange={(e) => setNewItem(e.target.value)}
+              className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-slate-400"
+            />
+            <input
+              type="number"
+              placeholder="金額"
+              value={newCost}
+              onChange={(e) => setNewCost(e.target.value)}
+              className="w-24 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-slate-400"
+            />
+          </div>
+          <button
+            onClick={handleAdd}
+            className="w-full bg-red-500 hover:bg-red-600 active:bg-red-700 text-white py-2.5 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center justify-center gap-2"
+          >
+            <Plus className="w-4 h-4" /> 記一筆
+          </button>
+        </div>
+      </Card>
+
+      {/* 消費列表 */}
+      <div>
+        <h3 className="text-sm font-bold text-slate-500 mb-2 uppercase tracking-wider">消費明細</h3>
+        <div className="space-y-2">
+          {expenses.length === 0 ? (
+            <div className="text-center py-8 text-slate-400 text-sm">還沒有紀錄，買個蘋果派吧？</div>
+          ) : (
+            expenses.map((exp) => (
+              <div key={exp.id} className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${categories[exp.category].color}`}>
+                    {categories[exp.category].icon}
+                  </div>
+                  <div>
+                    <div className="font-medium text-slate-800">{exp.item}</div>
+                    <div className="text-xs text-slate-400">{exp.date}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono font-bold text-slate-700">¥{exp.cost.toLocaleString()}</span>
+                  <button onClick={() => handleDelete(exp.id)} className="text-slate-300 hover:text-red-400">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- 頁面：日記 (Journal) ---
+const JournalView = ({ entries, setEntries }) => {
+  const [text, setText] = useState("");
+  
+  const handlePost = () => {
+    if (!text) return;
+    const entry = {
+      id: Date.now(),
+      text,
+      date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      fullDate: new Date().toLocaleDateString()
+    };
+    setEntries([entry, ...entries]);
+    setText("");
+  };
+
+  return (
+    <div className="space-y-6 px-4 pt-4 pb-24 h-full flex flex-col">
+      {/* 輸入區 */}
+      <Card>
+        <div className="p-4">
+          <textarea
+            className="w-full h-24 resize-none bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:outline-none focus:border-slate-400 mb-3"
+            placeholder="此刻的心情、天氣或是剛吃到的美食..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          ></textarea>
+          <div className="flex justify-between items-center">
+             <button className="text-slate-400 hover:text-slate-600">
+                <Camera className="w-5 h-5" />
+             </button>
+             <button
+              onClick={handlePost}
+              className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-700"
+             >
+               發佈日記
+             </button>
+          </div>
+        </div>
+      </Card>
+
+      {/* 時間軸列表 */}
+      <div className="flex-1 overflow-y-auto">
+        {entries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+            <Snowflake className="w-12 h-12 mb-2 opacity-20" />
+            <p className="text-sm">長野的雪景很美，寫下來吧</p>
+          </div>
+        ) : (
+          <div className="space-y-4 relative pl-4 border-l-2 border-slate-100 ml-2">
+            {entries.map((entry) => (
+              <div key={entry.id} className="relative">
+                {/* 裝飾圓點 */}
+                <div className="absolute -left-[21px] top-3 w-3 h-3 bg-red-400 rounded-full border-2 border-white shadow-sm"></div>
+                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                  <div className="text-xs font-bold text-slate-400 mb-1 flex justify-between">
+                    <span>{entry.fullDate}</span>
+                    <span>{entry.date}</span>
+                  </div>
+                  <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed">{entry.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// --- 主程式 ---
+export default function App() {
+  const [activeTab, setActiveTab] = useState("guide");
+  
+  // 狀態管理 (含 localStorage 持久化)
+  const [expenses, setExpenses] = useState(() => {
+    const saved = localStorage.getItem("nagano_expenses");
+    // 預設資料：放入攻略中提到的基本開銷
+    return saved ? JSON.parse(saved) : [
+      { id: 1, item: "東京-長野 新幹線", cost: 8500, category: "行", date: "預算" },
+      { id: 2, item: "往戶隱巴士", cost: 1400, category: "行", date: "預算" },
+    ];
+  });
+
+  const [journalEntries, setJournalEntries] = useState(() => {
+    const saved = localStorage.getItem("nagano_journal");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("nagano_expenses", JSON.stringify(expenses));
+  }, [expenses]);
+
+  useEffect(() => {
+    localStorage.setItem("nagano_journal", JSON.stringify(journalEntries));
+  }, [journalEntries]);
+
+  // 底部導航欄設定
+  const tabs = [
+    { id: "guide", label: "攻略", icon: <BookOpen className="w-5 h-5" /> },
+    { id: "expenses", label: "記帳", icon: <CreditCard className="w-5 h-5" /> },
+    { id: "journal", label: "日記", icon: <Calendar className="w-5 h-5" /> },
+  ];
+
+  return (
+    <div className="w-full h-screen bg-slate-50 font-sans text-slate-900 flex flex-col max-w-md mx-auto relative shadow-2xl overflow-hidden">
+      
+      {/* 頂部導航 */}
+      <header className="bg-white border-b border-slate-100 p-4 sticky top-0 z-10 flex items-center justify-between">
+        <h1 className="text-lg font-bold flex items-center gap-2">
+          <span className="bg-red-500 text-white w-7 h-7 flex items-center justify-center rounded-lg text-xs">長</span>
+          長野旅人手帳
+        </h1>
+        <div className="text-xs text-slate-400 font-mono">2025 Winter</div>
+      </header>
+
+      {/* 主要內容區 (可捲動) */}
+      <main className="flex-1 overflow-y-auto scrollbar-hide">
+        {activeTab === "guide" && <GuideView />}
+        {activeTab === "expenses" && <ExpensesView expenses={expenses} setExpenses={setExpenses} />}
+        {activeTab === "journal" && <JournalView entries={journalEntries} setEntries={setJournalEntries} />}
+      </main>
+
+      {/* 底部 Tab Bar */}
+      <nav className="bg-white border-t border-slate-100 pb-safe pt-2 px-6 absolute bottom-0 w-full z-20">
+        <div className="flex justify-between items-center h-14">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center gap-1 transition-all w-16 ${
+                activeTab === tab.id 
+                  ? "text-red-500 scale-105" 
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              {tab.icon}
+              <span className="text-[10px] font-bold">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+      
+      <style>{`
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+    </div>
+  );
+}
